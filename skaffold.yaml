@@ -1,0 +1,22 @@
+apiVersion: skaffold/v2beta13
+kind: Config
+deploy:
+  kubectl:
+    manifests:
+      - ./infra/k8s/watch/*
+    flags:
+      global: # additional flags passed on every command.
+      - --namespace=hooli-poc
+build:
+  local:
+    push: false
+  artifacts:
+    - image: davybello/hooli
+      # workspace:
+      # context: .
+      docker:
+        dockerfile: dev.Dockerfile
+      sync:
+        manual:
+          - src: 'apps/**/src/**/*.ts'
+            dest: .

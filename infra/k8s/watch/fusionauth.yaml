@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: hooli-poc
+  name: fusionauth-srv
+spec:
+  selector:
+    app: fusionauth
+  ports:
+    - name: admin
+      protocol: TCP
+      port: 9011
+      targetPort: 9011
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: hooli-poc
+  name: fusionauth-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fusionauth
+  template:
+    metadata:
+      labels:
+        app: fusionauth
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.32
+          args:
+            - /bin/sh
+            - -c
+            - >
+              set -x;
+              while [[ "$(nc -zv 'mysql-srv' 3306 &> /dev/null; echo $?)" != 0 ]]; do
+                echo '.'
+                sleep 15;
+              done
+      containers:
+        - name: fusionauth
+          image: fusionauth/fusionauth-app:1.25.0
+          # resources:
+          #   limits:
+          #     memory: "1024m"
+          #     cpu: "2000m"
+          ports:
+            - containerPort: 9011
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: hooli-poc-db-config
+                  key: FUSIONAUTH_MYSQL_URL
+            - name: DATABASE_ROOT_USERNAME
+              value: root
+            - name: DATABASE_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hooli-poc-secret
+                  key: MYSQL_PASSWORD
+            - name: DATABASE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: hooli-poc-db-config
+                  key: FUSIONAUTH_MYSQL_USER
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hooli-poc-db-secret
+                  key: FUSIONAUTH_MYSQL_PASSWORD
+            - name: FUSIONAUTH_APP_MEMORY
+              value: 128M
+            - name: FUSIONAUTH_APP_RUNTIME_MODE
+              value: development
+            - name: FUSIONAUTH_APP_URL
+              value: http://fusionauth.local:9011
+            - name: SEARCH_TYPE
+              value: database
+            - name: DATABASE_MYSQL_ENFORCE_UTF8MB4
+              value: "false"
+            - name: FUSIONAUTH_APP_KICKSTART_FILE
+              value: /usr/local/fusionauth/kickstart/kickstart.json
+          volumeMounts:
+            - name: fusionauth-config-volume
+              mountPath: /usr/local/fusionauth/kickstart
+      volumes:
+        - name: fusionauth-config-volume
+          configMap:
+            name: fusionauth-kickstart-config

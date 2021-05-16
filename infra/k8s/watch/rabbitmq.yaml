@@ -1,0 +1,316 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: hooli-poc
+  name: rabbitmq-srv
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+    - name: mq-management
+      protocol: TCP
+      port: 15672
+      targetPort: 15672
+    - name: mq
+      protocol: TCP
+      port: 5672
+      targetPort: 5672
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: hooli-poc
+  name: rabbitmq-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      initContainers:
+        - name: configmap-copy
+          image: busybox
+          command: ['/bin/sh', '-c', 'cp /etc/rabbitmq/files/* /etc/rabbitmq/']
+          volumeMounts:
+          - name: rabbitmq-config-volume
+            mountPath: /etc/rabbitmq/files
+          - name: tmp-config
+            mountPath: /etc/rabbitmq
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3.6-management
+          # resources:
+          #   limits:
+          #     memory: "1024m"
+          #     cpu: "2000m"
+          ports:
+            - containerPort: 5672
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              value: admin
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: hooli-poc-secret
+                  key: AMQP_PASSWORD
+            - name: RABBITMQ_CONFIG_FILE
+              value: /etc/rabbitmq/rabbitmq-indicina
+          volumeMounts:
+          - name: rabbitmq-config-volume
+            mountPath: /etc/rabbitmq/files
+          - name: tmp-config
+            mountPath: /etc/rabbitmq
+      volumes:
+        - name: tmp-config
+          emptyDir: {}
+        - name: rabbitmq-config-volume
+          configMap:
+            name: rabbitmq-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: hooli-poc
+  name: rabbitmq-config
+data:
+  rabbitmq-indicina.config: |
+    [
+      { rabbit, [
+        { loopback_users, [ ] },
+        { tcp_listeners, [ 5672 ] },
+        { ssl_listeners, [ ] },
+        { default_pass, <<"admin">> },
+        { default_user, <<"admin">> },
+        { hipe_compile, false }
+      ] },
+      { rabbitmq_management, [
+        { listener, [
+          { port, 15672 },
+          { ssl, false }
+        ] },
+        { load_definitions, "/etc/rabbitmq/definitions.json" }
+      ] },
+      {rabbitmq_shovel,
+        [ {shovels, [ {global_fcmb,
+                        [ {sources,
+                            [ {brokers, [ "amqp:///%2Fglobal"
+                                        ]}
+                            , {declarations, [ {'exchange.declare',
+                                                  [ {exchange, <<"global">>}
+                                                  , {type, <<"topic">>}
+                                                  , durable
+                                                  ]}
+                                            , {'queue.declare',
+                                                  [{arguments,
+                                                    [{<<"x-message-ttl">>, long, 60000}]}]}
+                                            , {'queue.bind',
+                                                  [ {exchange, <<"global">>}
+                                                  , {queue,    <<>>}
+                                                  , {routing_key, <<"#">>}
+                                                  ]}
+                                            ]}
+                            ]}
+                        , {destinations,
+                            [ {broker, "amqp:///%2Ffcmb"}
+                            , {declarations, [ {'exchange.declare',
+                                                  [ {exchange, <<"incoming">>}
+                                                  , {type, <<"topic">>}
+                                                  , durable
+                                                  ]}
+                                            ]}
+                            ]}
+                        , {queue, <<>>}
+                        , {prefetch_count, 1000}
+                        , {ack_mode, on_confirm}
+                        , {add_forward_headers, false}
+                        , {publish_fields, [ {exchange, <<"incoming">>} ]}
+                        , {reconnect_delay, 1}
+                        ]},
+          {global_ignite,
+            [ {sources,
+              [ {brokers, [ "amqp:///%2Fglobal"
+              ]}
+                , {declarations, [ {'exchange.declare',
+                [ {exchange, <<"global">>}
+                  , {type, <<"topic">>}
+                  , durable
+                ]}
+                , {'queue.declare',
+                  [{arguments,
+                    [{<<"x-message-ttl">>, long, 60000}]}]}
+                , {'queue.bind',
+                  [ {exchange, <<"global">>}
+                    , {queue,    <<>>}
+                    , {routing_key, <<"#">>}
+                  ]}
+              ]}
+              ]}
+              , {destinations,
+              [ {broker, "amqp:///%2Fignite"}
+                , {declarations, [ {'exchange.declare',
+                [ {exchange, <<"incoming">>}
+                  , {type, <<"topic">>}
+                  , durable
+                ]}
+              ]}
+              ]}
+              , {queue, <<>>}
+              , {prefetch_count, 1000}
+              , {ack_mode, on_confirm}
+              , {add_forward_headers, false}
+              , {publish_fields, [ {exchange, <<"incoming">>} ]}
+              , {reconnect_delay, 1}
+            ]}
+          ]}
+      ]}
+    ].
+  definitions.json: |
+    {
+      "rabbit_version":"3.6.0",
+      "users":[
+        {
+          "name":"admin",
+          "password_hash":"pJ2K8Sf4a/3n+OAil1/oon5s784vFOPJdZQm9UIkt3lKN59c",
+          "tags":"administrator"
+        },
+        {
+          "name":"fcmb",
+          "password_hash":"pJ2K8Sf4a/3n+OAil1/oon5s784vFOPJdZQm9UIkt3lKN59c",
+          "tags":"monitoring"
+        },
+        {
+          "name":"ignite",
+          "password_hash":"pJ2K8Sf4a/3n+OAil1/oon5s784vFOPJdZQm9UIkt3lKN59c",
+          "tags":"monitoring"
+        }
+      ],
+      "vhosts":[
+        {
+          "name":"/global"
+        },
+        {
+          "name":"/fcmb"
+        },
+        {
+          "name":"/"
+        },
+        {
+          "name":"/ignite"
+        }
+      ],
+      "permissions":[
+        {
+          "user":"admin",
+          "vhost":"/global",
+          "configure":".*",
+          "write":".*",
+          "read":".*"
+        },
+        {
+          "user":"admin",
+          "vhost":"/fcmb",
+          "configure":".*",
+          "write":".*",
+          "read":".*"
+        },
+        {
+          "user":"admin",
+          "vhost":"/",
+          "configure":".*",
+          "write":".*",
+          "read":".*"
+        },
+        {
+          "user":"admin",
+          "vhost":"/ignite",
+          "configure":".*",
+          "write":".*",
+          "read":".*"
+        },
+        {
+          "user":"fcmb",
+          "vhost":"/fcmb",
+          "configure":".*",
+          "write":".*",
+          "read":".*"
+        },
+        {
+          "user":"fcmb",
+          "vhost":"/global",
+          "configure":".*",
+          "write":".*",
+          "read":".*"
+        },
+        {
+          "user":"ignite",
+          "vhost":"/ignite",
+          "configure":".*",
+          "write":".*",
+          "read":".*"
+        },
+        {
+          "user":"ignite",
+          "vhost":"/global",
+          "configure":".*",
+          "write":".*",
+          "read":".*"
+        }
+      ],
+      "parameters":[],
+      "policies":[],
+      "queues":[],
+      "exchanges":[
+        {
+          "name": "global",
+          "vhost": "/global",
+          "type": "topic",
+          "durable": true,
+          "auto_delete": false,
+          "internal": false,
+          "arguments": {}
+        },
+        {
+          "name": "incoming",
+          "vhost": "/ignite",
+          "type": "topic",
+          "durable": true,
+          "auto_delete": false,
+          "internal": false,
+          "arguments": {}
+        },
+        {
+          "name": "incoming",
+          "vhost": "/fcmb",
+          "type": "topic",
+          "durable": true,
+          "auto_delete": false,
+          "internal": false,
+          "arguments": {}
+        }
+      ],
+      "bindings":[]
+    }
+  enabled_plugins: |
+    [rabbitmq_management,rabbitmq_shovel,rabbitmq_shovel_management].
+  rabbitmq-config: |
+    [
+      { rabbit, [
+        { loopback_users, [ ] },
+        { tcp_listeners, [ 5672 ] },
+        { ssl_listeners, [ ] },
+        { default_pass, <<"admin">> },
+        { default_user, <<"admin">> },
+        { hipe_compile, false }
+      ] },
+      { rabbitmq_management, [
+        { listener, [
+          { port, 15672 },
+          { ssl, false }
+        ] },
+        { load_definitions, "/etc/rabbitmq/definitions.json" }
+      ] }
+    ].

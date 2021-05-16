@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: hooli-poc
+  name: hooli-poc-db-config
+data:
+  BASE_MYSQL_URL: jdbc:mysql://mysql-srv:3306
+  BASE_MYSQL_HOST: mysql-srv
+  BASE_MYSQL_PORT: "3306"
+  FUSIONAUTH_MYSQL_URL: jdbc:mysql://mysql-srv:3306/fusionauth
+  FUSIONAUTH_MYSQL_USER: fusionauth
+  FUSIONAUTH_MYSQL_DB_NAME: fusionauth
+  API_GATEWAY_MYSQL_USER: api-gateway
+  API_GATEWAY_MYSQL_DB_NAME: api-gateway
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: hooli-poc
+  name: hooli-poc-db-secret
+stringData:
+  FUSIONAUTH_MYSQL_PASSWORD: FUSIONAUTH_MYSQL_PASSWORD
+  API_GATEWAY_MYSQL_PASSWORD: API_GATEWAY_MYSQL_PASSWORD
+type: Opaque

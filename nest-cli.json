@@ -1,0 +1,30 @@
+{
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/hooli-poc/src",
+  "monorepo": true,
+  "root": "apps/hooli-poc",
+  "compilerOptions": {
+    "webpack": true,
+    "tsConfigPath": "apps/hooli-poc/tsconfig.app.json"
+  },
+  "projects": {
+    "hooli-poc": {
+      "type": "application",
+      "root": "apps/hooli-poc",
+      "entryFile": "main",
+      "sourceRoot": "apps/hooli-poc/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/hooli-poc/tsconfig.app.json"
+      }
+    },
+    "account-app": {
+      "type": "application",
+      "root": "apps/account-app",
+      "entryFile": "main",
+      "sourceRoot": "apps/account-app/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/account-app/tsconfig.app.json"
+      }
+    }
+  }
+}

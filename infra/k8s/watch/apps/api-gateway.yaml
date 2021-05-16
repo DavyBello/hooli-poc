@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: hooli-poc
+  name: api-gateway-srv
+spec:
+  selector:
+    app: api-gateway
+  ports:
+    - name: api-gateway
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: hooli-poc
+  name: api-gateway-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.32
+          args:
+            - /bin/sh
+            - -c
+            - >
+              set -x;
+              while [[ "$(nc -zv 'mysql-srv' 3306 &> /dev/null; echo $?)" != 0 ]]; do
+                echo '.'
+                sleep 15;
+              done
+      containers:
+        - name: api-gateway
+          image: davybello/hooli
+          env:
+            - name: DB_HOSTNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: hooli-poc-db-config
+                  key: BASE_MYSQL_HOST
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: hooli-poc-db-config
+                  key: BASE_MYSQL_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: hooli-poc-db-config
+                  key: API_GATEWAY_MYSQL_DB_NAME
+            - name: DB_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: hooli-poc-db-config
+                  key: API_GATEWAY_MYSQL_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hooli-poc-db-secret
+                  key: API_GATEWAY_MYSQL_PASSWORD
+            # - name: AMQP_PASSWORD
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: hooli-poc-secret
+            #       key: AMQP_PASSWORD
+          envFrom:
+            - configMapRef:
+                name: api-gateway-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: hooli-poc
+  name: api-gateway-config
+data:
+  APP_NAME: hooli-poc
+  NODE_ENV: development
+  PORT: "3000"
+  # AMQP
+  AMQP_URL: amqp://rabbitmq-srv
+  AMQP_USERNAME: api-gateway
+  AMQP_VHOST: /template
+  AMQP_GLOBAL_VHOST: /global
+  # Redis
+  REDIS_HOST: redis-srv
+  REDIS_PORT: "6379"

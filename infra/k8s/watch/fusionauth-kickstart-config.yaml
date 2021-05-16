@@ -1,0 +1,231 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: hooli-poc
+  name: fusionauth-kickstart-config
+data:
+  kickstart.json: |
+    {
+      "variables": {
+        "adminEmail": "admin@hooli.devvl",
+        "password": "password",
+      },
+      "apiKeys": [
+        {
+          "key": "bf69486b-4733-4470-a592-f1bfce7af580",
+          "description": "Standard development API key"
+        }
+      ],
+      "requests": [
+        {
+          "method": "POST",
+          "url": "/api/application",
+          "body": {
+            "application": {
+              "name": "Pied Piper",
+              "roles": [
+                {
+                  "name": "dev"
+                },
+                {
+                  "name": "ceo"
+                },
+                {
+                  "name": "intern"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "url": "/api/user/registration",
+          "body": {
+            "user": {
+              "birthDate": "1981-06-04",
+              "email": "#{adminEmail}",
+              "firstName": "Erlich",
+              "lastName": "Bachman",
+              "password": "#{password}",
+              "data": {
+                "Company": "Hooli",
+                "PreviousCompany": "Aviato",
+                "user_type": "iconclast"
+              }
+            },
+            "registration": {
+              "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+              "roles": [
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "url": "/api/user/registration",
+          "body": {
+            "user": {
+              "email": "jared@hooli.devvl",
+              "firstName": "Jared",
+              "lastName": "Dunn",
+              "password": "#{password}",
+              "data": {
+                "Company": "Hooli"
+              },
+              "imageUrl": "https://gravatar.com/avatar/d9d3753ccd95843e35ddac9f4dac7e13?s=400&d=robohash&r=x"
+            },
+            "registration": {
+              "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+              "roles": [
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "url": "/api/user/registration",
+          "body": {
+            "user": {
+              "email": "nelson@hooli.devvl",
+              "firstName": "Nelson",
+              "lastName": "Bighetti",
+              "password": "#{password}",
+              "data": {
+                "Company": "Hooli"
+              },
+              "imageUrl": "https://gravatar.com/avatar/d9d3753ccd95843e35ddac9f4dac7e13?s=400&d=robohash&r=x"
+            },
+            "registration": {
+              "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+              "roles": [
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "url": "/api/user/registration",
+          "body": {
+            "user": {
+              "email": "dinesh@hooli.devvl",
+              "firstName": "Dinish",
+              "lastName": "Chugtai",
+              "password": "#{password}",
+              "data": {
+                "Company": "Hooli"
+              },
+              "imageUrl": "https://gravatar.com/avatar/d9d3753ccd95843e35ddac9f4dac7e13?s=400&d=robohash&r=x"
+            },
+            "registration": {
+              "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+              "roles": [
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "url": "/api/user/registration",
+          "body": {
+            "user": {
+              "email": "gilfoyle@hooli.devvl",
+              "firstName": "Bertram",
+              "lastName": "Gilfoyle",
+              "password": "#{password}",
+              "data": {
+                "Company": "Hooli"
+              },
+              "imageUrl": "https://gravatar.com/avatar/d9d3753ccd95843e35ddac9f4dac7e13?s=400&d=robohash&r=x"
+            },
+            "registration": {
+              "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+              "roles": [
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "url": "/api/user/registration",
+          "body": {
+            "user": {
+              "email": "richard@hooli.devvl",
+              "firstName": "Richard",
+              "lastName": "Hendricks",
+              "password": "#{password}",
+              "data": {
+                "Company": "Hooli"
+              },
+              "imageUrl": "https://gravatar.com/avatar/d9d3753ccd95843e35ddac9f4dac7e13?s=400&d=robohash&r=x"
+            },
+            "registration": {
+              "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+              "roles": [
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "url": "/api/user/registration",
+          "body": {
+            "user": {
+              "email": "monica@hooli.devvl",
+              "firstName": "Monica",
+              "lastName": "Hall",
+              "password": "#{password}",
+              "data": {
+                  "Company": "Hooli"
+              },
+              "imageUrl": "https://gravatar.com/avatar/d9d3753ccd95843e35ddac9f4dac7e13?s=400&d=robohash&r=x"
+            },
+            "registration": {
+              "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+              "roles": [
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "url": "/api/user/registration",
+          "body": {
+            "user": {
+              "email": "jian@hooli.devvl",
+              "firstName": "Jìan",
+              "lastName": "Yáng",
+              "password": "#{password}",
+              "data": {
+                "Company": "Hooli"
+              },
+              "imageUrl": "https://gravatar.com/avatar/d9d3753ccd95843e35ddac9f4dac7e13?s=400&d=robohash&r=x"
+            },
+            "registration": {
+              "applicationId": "#{FUSIONAUTH_APPLICATION_ID}",
+              "roles": [
+                "admin"
+              ]
+            }
+          }
+        },
+        {
+          "method": "PATCH",
+          "url": "/api/tenant/#{FUSIONAUTH_TENANT_ID}",
+          "body": {
+            "tenant": {
+              "emailConfiguration": {
+                "host": "mailslurper-srv",
+                "port": "2500"
+              }
+            }
+          }
+        }
+      ]
+    }

@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: hooli-poc
+  name: mysql-createdb-script
+data:
+  init-dbs.sh: |
+    #!/bin/bash
+    sleep 30
+    echo "Initializing databases"
+    ./create-db.sh $FUSIONAUTH_MYSQL_DB_NAME $FUSIONAUTH_MYSQL_USER $FUSIONAUTH_MYSQL_PASSWORD
+    ./create-db.sh $API_GATEWAY_MYSQL_DB_NAME $API_GATEWAY_MYSQL_USER $API_GATEWAY_MYSQL_PASSWORD
+  create-db.sh: |
+    #!/bin/bash
+    green() {
+      echo -e '\e[32m'$1'\e[m';
+    }
+
+    readonly EXPECTED_ARGS=3
+    readonly E_BADARGS=65
+    readonly MYSQL=`which mysql`
+
+    # Construct the MySQL query
+    readonly Q1="CREATE DATABASE IF NOT EXISTS $1;"
+    readonly Q2="GRANT ALL ON $1.* TO '$2'@'%' IDENTIFIED BY '$3';"
+    readonly Q3="FLUSH PRIVILEGES;"
+    readonly SQL="${Q1}${Q2}${Q3}"
+
+    # Do some parameter checking and bail if bad
+    if [ $# -ne $EXPECTED_ARGS ]
+    then
+      echo "Usage: $0 dbname dbuser dbpass"
+      exit $E_BADARGS
+    fi
+
+    # Run the actual command
+    $MYSQL -uroot -p$MYSQL_ROOT_PASSWORD -e "$SQL"
+
+    # Let the user know the database was created
+    green "Database $1 and user $2 created with a password you chose"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: hooli-poc
+  name: mysql-srv
+spec:
+  selector:
+    app: mysql
+  ports:
+    - name: db
+      protocol: TCP
+      port: 3306
+      targetPort: 3306
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: hooli-poc
+  name: mysql-depl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:5.7
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - >
+                    cd usr/local/scripts;
+                    ./init-dbs.sh;
+          ports:
+            - containerPort: 3306
+          volumeMounts:
+            - mountPath: "/var/lib/mysql"
+              subPath: "mysql"
+              name: mysql-data
+            - mountPath: "/usr/local/scripts"
+              name: mysql-createdb
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: hooli-poc-secret
+                  key: MYSQL_PASSWORD
+          envFrom:
+            - configMapRef:
+                name: hooli-poc-db-config
+            - secretRef:
+                name: hooli-poc-db-secret
+      volumes:
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: hooli-poc-volume
+        - name: mysql-createdb
+          configMap:
+            name: mysql-createdb-script
+            defaultMode: 0755

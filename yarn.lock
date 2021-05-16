@@ -370,6 +370,13 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
+"@fusionauth/typescript-client@^1.27.2":
+  version "1.27.2"
+  resolved "https://registry.yarnpkg.com/@fusionauth/typescript-client/-/typescript-client-1.27.2.tgz#5f0dafb361808881d1407ad838f4c8721587631b"
+  integrity sha512-YXbZXJb5jV3qxsEaQZzCcrwLMwUbqlYSV61g9jlq+1bWeboJYzK45zM7c99BLMWZZI/+GDv3/wHiAYfJFKJmew==
+  dependencies:
+    node-fetch "^2.6.1"
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"

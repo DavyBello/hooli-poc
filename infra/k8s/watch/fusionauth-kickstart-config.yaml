@@ -7,8 +7,8 @@ data:
   kickstart.json: |
     {
       "variables": {
-        "adminEmail": "admin@hooli.devvl",
-        "password": "password",
+        "adminEmail": "admin@hooli.devl",
+        "password": "password"
       },
       "apiKeys": [
         {
@@ -66,7 +66,7 @@ data:
           "url": "/api/user/registration",
           "body": {
             "user": {
-              "email": "jared@hooli.devvl",
+              "email": "jared@hooli.devl",
               "firstName": "Jared",
               "lastName": "Dunn",
               "password": "#{password}",
@@ -88,7 +88,7 @@ data:
           "url": "/api/user/registration",
           "body": {
             "user": {
-              "email": "nelson@hooli.devvl",
+              "email": "nelson@hooli.devl",
               "firstName": "Nelson",
               "lastName": "Bighetti",
               "password": "#{password}",
@@ -110,7 +110,7 @@ data:
           "url": "/api/user/registration",
           "body": {
             "user": {
-              "email": "dinesh@hooli.devvl",
+              "email": "dinesh@hooli.devl",
               "firstName": "Dinish",
               "lastName": "Chugtai",
               "password": "#{password}",
@@ -132,7 +132,7 @@ data:
           "url": "/api/user/registration",
           "body": {
             "user": {
-              "email": "gilfoyle@hooli.devvl",
+              "email": "gilfoyle@hooli.devl",
               "firstName": "Bertram",
               "lastName": "Gilfoyle",
               "password": "#{password}",
@@ -154,7 +154,7 @@ data:
           "url": "/api/user/registration",
           "body": {
             "user": {
-              "email": "richard@hooli.devvl",
+              "email": "richard@hooli.devl",
               "firstName": "Richard",
               "lastName": "Hendricks",
               "password": "#{password}",
@@ -176,7 +176,7 @@ data:
           "url": "/api/user/registration",
           "body": {
             "user": {
-              "email": "monica@hooli.devvl",
+              "email": "monica@hooli.devl",
               "firstName": "Monica",
               "lastName": "Hall",
               "password": "#{password}",
@@ -198,7 +198,7 @@ data:
           "url": "/api/user/registration",
           "body": {
             "user": {
-              "email": "jian@hooli.devvl",
+              "email": "jian@hooli.devl",
               "firstName": "Jìan",
               "lastName": "Yáng",
               "password": "#{password}",

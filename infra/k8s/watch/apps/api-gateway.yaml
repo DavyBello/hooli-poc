@@ -94,3 +94,7 @@ data:
   # Redis
   REDIS_HOST: redis-srv
   REDIS_PORT: "6379"
+  # FUSION AUTH
+  FUSIONAUTH_API_KEY: bf69486b-4733-4470-a592-f1bfce7af580
+  FUSIONAUTH_URL: "http://fusionauth-srv:9011"
+  FUSIONAUTH_TEMPLATE_TENANT_ID: 38f1a592-0258-4aaf-9f16-fdaa4d3c4787
